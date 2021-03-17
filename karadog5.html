@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>神経衰弱</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="karadog.css">
+  </head>
+  <body>
+  	<div id="wrapper">
+  		<h1 id="text">同じ絵柄を探してね！</h4>
+  		<input type="button" id="start_button" value="スタート">
+  		<span id="timer">残り20秒</span>
+  	<p>
+  		<canvas id="canvas" width="300px" height="480px" style="background-color:green"></canvas>
+  	</p>
+  	</div>
+  	<script>
+		const text = document.getElementById("text");
+		const canvas = document.getElementById("canvas");
+		const ctx = canvas.getContext("2d");
+		const start_button = document.getElementById("start_button");
+		const imageWidth = 96;//描写する画像のサイズ
+		const cards = [1,1,2,2,3,3,4,4,5,5];//カードの配列
+		const cardsLength=cards.length;
+		const finishCount=cardsLength/2;//ペア総数
+		let board =
+		[
+		[cards[0],cards[1]],
+		[cards[2],cards[3]],
+		[cards[4],cards[5]],
+		[cards[6],cards[7]],
+		[cards[8],cards[9]]
+		];
+		let card1=null;//1枚目のカード
+		let card2=null;//2枚目のカード
+		let card1X;//1枚目のカードのx
+		let card1Y;//1枚目のカードのy
+		let card2X;//2枚目のカードのx
+		let card2Y;//2枚目のカードのy
+		let cardFlag1=false;//1枚のカードを捲ったかどうか。めくったらtrue;
+		let cardFlag2=false;
+		let okCounter=0;//ペアが出来た数
+		let cardX;//クリックしたカードのx
+		let cardY;//クリックしたカードのy
+		
+	    //カードをシャッフルする。
+		function shuffle(){
+		for(let i=cardsLength-1; i>=0; i--){
+		  const randomCards= Math.floor(Math.random()*(i+1));
+		  [cards[i],cards[randomCards]]=[cards[randomCards],cards[i]];
+		}
+		board =
+		[
+		[cards[0],cards[1]],
+		[cards[2],cards[3]],
+		[cards[4],cards[5]],
+		[cards[6],cards[7]],
+		[cards[8],cards[9]]
+		];
+		console.log(cards);
+		console.log(board);
+		}
+
+		//画像を描写する
+		function drawImage(x,y,srcUrl){
+			const img = new Image();
+			img.src = srcUrl;
+			img.onload = function (){
+		  		ctx.drawImage(img,x,y,imageWidth,imageWidth);
+			}
+		}
+
+		//全マスに画像を描く
+		for(let x=0; x<2; x++){
+			for (var y=0; y<5; y++){
+		  		drawImage(x*150+24,y*imageWidth,'./image/close.png');
+			}
+		}
+
+	    
+		//クリックした座標を取得
+		let clickAt = function(x,y){
+			let rect = event.target.getBoundingClientRect();
+			let pointX = event.clientX - rect.left;
+			let pointY = event.clientY - rect.top;
+			pointX = pointX - pointX % 150;
+			pointY = pointY - pointY % imageWidth;
+			console.log("クリックした座標は["+pointY+"・"+pointX+"]");
+			let cardX = pointX/150;
+			let cardY = pointY/imageWidth;
+			console.log("boardの場所は["+cardY+"・"+cardX+"]");
+			console.log("boardの値は"+board[cardY][cardX]);
+			drawAt(cardY,cardX);
+			changeTurn(cardY,cardX);
+		}
+
+	    //カードの表面を描写する
+	    function draw(cardY,cardX,i){
+	    	ctx.beginPath();
+	       	ctx.clearRect(cardX*150+24,cardY*imageWidth,imageWidth,imageWidth);
+	       	drawImage(cardX*150+24,cardY*imageWidth,`./image/${i}.png`);
+	    }
+
+		//クリックした場所に画像の値に応じて画像を描写する
+		function drawAt(cardY,cardX){
+			let drawboard = Array.prototype.concat.apply([],board);
+			for(let i=0; i<=drawboard.length; i++){
+		  		if(board[cardY][cardX]==drawboard[i] && board[cardY][cardX]!==null){
+		    		draw(cardY,cardX,drawboard[i]);
+		  		}else if(board[cardY][cardX]==null){
+		  			;
+		  		}
+			}
+		}
+
+	    //1枚目のカードを選ぶ
+	    function turnCard1(cardY,cardX){
+			console.log("フラグ1は"+cardFlag1);
+			console.log("フラグ2は"+cardFlag2);
+			if(board[cardY][cardX]!==null){
+				cardFlag1=true;
+				card1=board[cardY][cardX];
+				card1X=cardX;
+				card1Y=cardY;
+				console.log("カード1は"+card1);
+				console.log("カード1Xは"+card1X);
+				console.log("カード1Yは"+card1Y);
+				console.log("フラグ1は"+cardFlag1);
+				console.log("フラグ2は"+cardFlag2);
+			}else{
+			  ;
+			}
+		}
+
+		//2枚目のカードを選ぶ
+		function turnCard2(cardY,cardX){
+			console.log("フラグ1は"+cardFlag1);
+			console.log("フラグ2は"+cardFlag2);
+			if(cardFlag1==true){
+			  	cardFlag2=true;
+				card2=board[cardY][cardX];
+				card2X=cardX;
+				card2Y=cardY;
+				console.log("カード1は"+card1);
+				console.log("カード2は"+card2);
+				console.log("カード1Xは"+card1X);
+				console.log("カード2Xは"+card2X);
+				console.log("カード1Yは"+card1Y);
+				console.log("カード2Yは"+card2Y);
+				console.log("フラグ1は"+cardFlag1);
+				console.log("フラグ2は"+cardFlag2);
+			}else{
+				  ;
+			}
+		}
+
+	    //1枚目が選ばれたら2枚目を選ぶ。2枚選ばれたらチェックする
+	    function changeTurn(cardY,cardX){
+	        if(cardFlag1==false){
+	          	text.innerText="探して！";
+	          	turnCard1(cardY,cardX);
+	        }else if(cardFlag1==true && cardFlag2==false && board[cardY][cardX]!==null){
+	          	turnCard2(cardY,cardX);
+	          	check(cardY,cardX);
+	        }
+	     }
+
+	    //ペアかどうかチェックする
+	    function check(cardY,cardX){
+	        if((cardFlag1==true && cardFlag2==true) && (card1X!==card2X || card1Y!==card2Y) && card1==card2){
+	          text.innerText="当たり";
+	          board[card1Y][card1X]=null;
+	          board[card2Y][card2X]=null;
+	          console.log(board);
+	          okCounter+=1;
+	          if(okCounter>=finishCount){
+	            text.innerText="やったね！！";
+	            setTimeout(finish,1000);
+	          }
+	        }else if((cardFlag1==true && cardFlag2==true) && card1!==card2){
+	          text.innerText="違うよ！";
+	          canvas.removeEventListener('click',clickAt);
+	          setTimeout(closeCard,500);
+	        }else if((card1X==card2X && card1Y==card2Y) && card1==card2){
+	          text.innerText="同じカードだよ！";
+	          canvas.removeEventListener('click',clickAt);
+	          setTimeout(closeCard,500);
+	        }
+	        //各フラグと各カードを初期化
+	        cardFlag1=false;
+	        cardFlag2=false;
+	        card1=null;
+	        card2=null;
+	    }
+
+	    //表にしたカードを裏返す。
+	    function closeCard(){
+			ctx.beginPath();
+			ctx.clearRect(card1X*150+24,card1Y*imageWidth,imageWidth,imageWidth);
+			drawImage(card1X*150+24,card1Y*imageWidth,'./image/close.png');
+			ctx.beginPath();
+			ctx.clearRect(card2X*150+24,card2Y*imageWidth,imageWidth,imageWidth);
+			drawImage(card2X*150+24,card2Y*imageWidth,'./image/close.png');
+			ctx.closePath();
+			text.innerText="探して！";
+			canvas.addEventListener('click',clickAt);
+	    }
+
+	    //終わり
+	    function finish(){
+	    	canvas.removeEventListener('click',clickAt);
+	        text.innerText="また遊んでね！"
+	        ctx.beginPath();
+	        ctx.clearRect(0,0,300,480);
+	        clearInterval(timerId);
+	        createButton();
+	    }
+
+	    start_button.addEventListener('click',(event) => {
+	    	shuffle();
+	    	canvas.addEventListener('click',clickAt);
+	    	start_button.disabled = true;
+	    	text.innerText = '探して！';
+	    })
+
+	    //タイマー
+		let timerId;
+		let currentTime;
+		let diff;
+		let remainMSec;
+		let remainSec;
+		start_button.addEventListener('click',(event) =>{
+			const totalTime = 20000;
+			const oldTime = Date.now();
+			console.log(oldTime);
+			timerId = setInterval(() => {
+				currentTime = Date.now();
+				console.log(currentTime);
+				diff = currentTime - oldTime;
+				console.log(diff);
+				remainMSec = totalTime - diff;
+				console.log(remainMSec);
+				remainSec = Math.ceil(remainMSec/1000);
+				console.log("remainSecは"+remainSec);
+				let label = `残り${remainSec}秒`;
+				if(remainMSec<=0){
+					canvas.removeEventListener('click',clickAt);
+	        		ctx.beginPath();
+	        		ctx.clearRect(0,0,300,480);
+					clearInterval(timerId);
+					label="時間切れ";
+					text.innerText="残念！また挑戦してね！"
+					createButton();
+				}
+				document.querySelector('#timer').innerHTML = label;
+			},1000);
+		})
+
+		//もう一度遊ぶボタンを追加
+		function createButton(){
+			const retryButton = document.createElement('input');
+			retryButton.type = 'button';
+			retryButton.value = 'もう一度遊ぶ';
+			text.appendChild(retryButton);
+			retryButton.onclick = function(){
+				location.reload();
+			}
+		}
+		
+  	</script>
+  </body>
+</html>
